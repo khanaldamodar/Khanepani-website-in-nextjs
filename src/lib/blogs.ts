@@ -1,0 +1,42 @@
+export const dummyBlogs = [
+  {
+    id: 1,
+    title: "How Water Management Impacts Rural Communities",
+    slug: "water-management-rural",
+    image: "/images/blog1.jpg",
+    content: "Full content of blog post 1...",
+    createdAt: "2025-08-01",
+  },
+  {
+    id: 2,
+    title: "Khanepani System Updates & Future Plans",
+    slug: "system-updates-future",
+    image: "/images/blog2.jpg",
+    content: "Full content of blog post 2...",
+    createdAt: "2025-07-24",
+  },
+  {
+    id: 3,
+    title: "Why Clean Water is a Basic Right",
+    slug: "clean-water-right",
+    image: "/images/blog3.jpg",
+    content: "Full content of blog post 3...",
+    createdAt: "2025-07-18",
+  },
+  {
+    id: 4,
+    title: "Board Members Discuss Sustainability Goals",
+    slug: "sustainability-board-talks",
+    image: "/images/blog4.jpg",
+    content: "Full content of blog post 4...",
+    createdAt: "2025-07-10",
+  },
+  {
+    id: 5,
+    title: "A Look Back: 5 Years of Progress",
+    slug: "5-years-progress",
+    image: "/images/blog5.jpg",
+    content: "Full content of blog post 5...",
+    createdAt: "2025-07-01",
+  },
+];
