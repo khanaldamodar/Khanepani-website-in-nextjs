@@ -1,19 +1,51 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
+import { useSearchParams, useRouter } from "next/navigation";
 
 export default function AddMember() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const editId = searchParams.get("id");
+
   const [form, setForm] = useState({
     name: "",
     number: "",
     position: "",
-    type: "",
+    type: "board",
     photo: null as File | null,
   });
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  // Fetch data if editing
+  useEffect(() => {
+    if (editId) {
+      const fetchMember = async () => {
+        try {
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+          const token = Cookies.get("token");
+          const res = await fetch(`${apiUrl}members/${editId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json();
+
+          setForm({
+            name: data.name,
+            number: data.number,
+            position: data.position,
+            type: data.type,
+            photo: null,
+          });
+        } catch (error) {
+          alert("Failed to load member details.");
+        }
+      };
+      fetchMember();
+    }
+  }, [editId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -37,28 +69,35 @@ export default function AddMember() {
     formData.append("position", form.position);
     formData.append("type", form.type);
     if (form.photo) formData.append("photo", form.photo);
+     if (editId) formData.append("_method", "PUT"); 
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const token = Cookies.get("token");
-      const res = await fetch(`${apiUrl}members`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`, // Replace this with your actual token variable
-        },
-        body: formData,
-      });
+      const res = await fetch(
+        editId ? `${apiUrl}members/${editId}` : `${apiUrl}members`,
+        {
+          method: editId ? "POST" : "POST", // If Laravel expects POST for both, keep as POST, else change to PUT for updates
+          
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        }
+      );
 
       if (res.ok) {
         setSuccess(true);
-        setForm({ name: "", number: "", position: "", type: "board", photo: null });
-        (document.getElementById("photo") as HTMLInputElement).value = "";
+        if (!editId) {
+          setForm({ name: "", number: "", position: "", type: "board", photo: null });
+          (document.getElementById("photo") as HTMLInputElement).value = "";
+        } else {
+          router.push("/admin/members"); // Redirect after update
+        }
       } else {
         const error = await res.json();
         alert(error.message || "Something went wrong.");
       }
     } catch (error) {
-      alert("Failed to add member.");
+      alert("Failed to save member.");
     } finally {
       setLoading(false);
     }
@@ -66,7 +105,9 @@ export default function AddMember() {
 
   return (
     <div className="max-w-xl mx-auto mt-10 bg-white shadow-md rounded-xl p-6">
-      <h2 className="text-2xl font-bold mb-6 text-center">Add Member</h2>
+      <h2 className="text-2xl font-bold mb-6 text-center">
+        {editId ? "Edit Member" : "Add Member"}
+      </h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="text"
@@ -83,7 +124,7 @@ export default function AddMember() {
           accept="image/*"
           onChange={handleFileChange}
           className="w-full border px-4 py-2 rounded"
-          required
+          required={!editId} // Make required only for new member
         />
         <input
           type="text"
@@ -117,10 +158,9 @@ export default function AddMember() {
           disabled={loading}
           className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
         >
-          {loading ? "Adding..." : "Add Member"}
+          {loading ? (editId ? "Updating..." : "Adding...") : editId ? "Update Member" : "Add Member"}
         </button>
-
-        {success && <p className="text-green-600 text-center mt-2">Member added successfully!</p>}
+        {success && <p className="text-green-600 text-center mt-2">Saved successfully!</p>}
       </form>
     </div>
   );

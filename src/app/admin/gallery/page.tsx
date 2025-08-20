@@ -3,17 +3,21 @@
 import { useEffect, useState } from "react";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import Cookies from "js-cookie"; // Ensure you have js-cookie installed
+import { useRouter } from "next/navigation";
 
 interface Gallery {
   id: number;
   title: string;
   images: string[]; // Array of image paths (from Laravel)
+  category: string;
   created_at: string;
 }
 
 export default function GalleryList() {
   const [galleries, setGalleries] = useState<Gallery[]>([]);
   const [filterTitle, setFilterTitle] = useState("");
+  const router = useRouter();
+
 
   useEffect(() => {
     fetchGallery();
@@ -38,8 +42,9 @@ export default function GalleryList() {
     if (!confirm("Are you sure you want to delete this gallery item?")) return;
 
     try {
-        const token = Cookies.get("token"); // Assuming you have a way to get the token from cookies or context
-      const res = await fetch(`http://localhost:8000/api/gallery/${id}`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+        const token = Cookies.get("token");
+      const res = await fetch(`${apiUrl}gallery/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -62,7 +67,7 @@ export default function GalleryList() {
   );
 
   return (
-    <div className="max-w-6xl mx-auto py-8 px-4">
+    <div className="max-w-6xl mx-auto py-8 px-4 font-poppins">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold">Gallery List</h2>
         <input
@@ -79,6 +84,7 @@ export default function GalleryList() {
           <thead className="bg-gray-100">
             <tr>
               <th className="px-4 py-3 text-left">Title</th>
+              <th className="px-4 py-3 text-left">Category</th>
               <th className="px-4 py-3 text-left">Preview</th>
               <th className="px-4 py-3 text-left">Created</th>
               <th className="px-4 py-3 text-left">Actions</th>
@@ -88,6 +94,7 @@ export default function GalleryList() {
             {filteredGalleries.map((gallery) => (
               <tr key={gallery.id} className="border-t hover:bg-gray-50">
                 <td className="px-4 py-3">{gallery.title}</td>
+                <td className="px-4 py-3">{gallery.category || "-"} </td>
                 <td className="px-4 py-3 flex gap-2">
                   {gallery.images.slice(0, 2).map((img, i) => (
                     <img
@@ -106,7 +113,7 @@ export default function GalleryList() {
                   <button title="View">
                     <Eye className="h-5 w-5 text-blue-600 hover:text-blue-800" />
                   </button>
-                  <button title="Edit">
+                  <button title="Edit"   onClick={() => router.push(`/admin/gallery/add?id=${gallery.id}`)}>
                     <Pencil className="h-5 w-5 text-yellow-600 hover:text-yellow-800" />
                   </button>
                   <button title="Delete" onClick={() => handleDelete(gallery.id)}>

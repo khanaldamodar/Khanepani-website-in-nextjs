@@ -57,7 +57,7 @@ const AdminSidebar = () => {
       icon: Edit3,
       label: 'Blog',
       submenu: [
-        { icon: Plus, label: 'Create New', path: '/admin/blog/create' },
+        { icon: Plus, label: 'Create New', path: '/admin/blog/add' },
         { icon: List, label: 'All Posts', path: '/admin/blog' }
       ]
     },
@@ -76,7 +76,7 @@ const AdminSidebar = () => {
       label: 'Members',
       submenu: [
         { icon: Plus, label: 'Add New', path: '/admin/members/add' },
-        { icon: List, label: 'All Members', path: '/members' }
+        { icon: List, label: 'All Members', path: '/admin/members' }
       ]
     },
     {
@@ -91,79 +91,91 @@ const AdminSidebar = () => {
     }
   ];
 
-  const MenuItem = ({ item }) => {
-    const IconComponent = item.icon;
-    const hasSubmenu = item.submenu && item.submenu.length > 0;
-    const isExpanded = expandedMenus[item.key];
+const MenuItem = ({ item }) => {
+  const IconComponent = item.icon;
+  const hasSubmenu = item.submenu && item.submenu.length > 0;
+  const isExpanded = expandedMenus[item.key];
 
-    return (
-      <div className="mb-1 font-poppins">
-        <div
-          onClick={() => hasSubmenu ? toggleSubmenu(item.key) : null}
-          className={`
-            flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white
-            cursor-pointer transition-all duration-200 group relative
-            ${isMinimized ? 'justify-center' : 'justify-between'}
-          `}
-        >
-          <div className="flex items-center">
-            <IconComponent size={20} className="flex-shrink-0" />
-            {!isMinimized && (
-              <span className="ml-3 font-medium">{item.label}</span>
-            )}
-          </div>
-          
-          {/* Tooltip for minimized state */}
-          {isMinimized && (
-            <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50">
-              {item.label}
-            </div>
-          )}
-          
-          {!isMinimized && hasSubmenu && (
-            <div className="transition-transform duration-200">
-              {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-            </div>
-          )}
-        </div>
-
-        {/* Submenu */}
-        {hasSubmenu && !isMinimized && (
-          <div className={`
-            overflow-hidden transition-all duration-300 ease-in-out
-            ${isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}
-          `}>
-            <div className="bg-gray-750 border-l-2 border-gray-600 ml-4">
-              {item.submenu.map((subItem, index) => {
-                const SubIconComponent = subItem.icon;
-                return (
-                  <div
-                    key={index}
-                    className="flex items-center px-6 py-2 text-gray-400 hover:bg-gray-600 hover:text-white cursor-pointer transition-all duration-200"
-                  >
-                    <Link href={subItem.path} className="flex items-center w-full">
-                    <SubIconComponent size={16} className="flex-shrink-0" />
-                    <span className="ml-3 text-sm">{subItem.label}</span>
-                    </Link>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+  const menuContent = (
+    <div
+      onClick={() => hasSubmenu ? toggleSubmenu(item.key) : null}
+      className={`
+        flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white
+        cursor-pointer transition-all duration-200 group relative
+        ${isMinimized ? 'justify-center' : 'justify-between'}
+      `}
+    >
+      <div className="flex items-center">
+        <IconComponent size={20} className="flex-shrink-0" />
+        {!isMinimized && (
+          <span className="ml-3 font-medium">{item.label}</span>
         )}
       </div>
-    );
-  };
+
+      {/* Tooltip for minimized state */}
+      {isMinimized && (
+        <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50">
+          {item.label}
+        </div>
+      )}
+
+      {!isMinimized && hasSubmenu && (
+        <div className="transition-transform duration-200">
+          {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="mb-1 font-poppins">
+      {hasSubmenu ? (
+        menuContent
+      ) : (
+        <Link href={item.path}>{menuContent}</Link>  // ✅ Wrap link for no-submenu items
+      )}
+
+      {/* Submenu */}
+      {hasSubmenu && !isMinimized && (
+        <div
+          className={`
+            overflow-hidden transition-all duration-300 ease-in-out
+            ${isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}
+          `}
+        >
+          <div className="bg-gray-750 border-l-2 border-gray-600 ml-4">
+            {item.submenu.map((subItem, index) => {
+              const SubIconComponent = subItem.icon;
+              return (
+                <div
+                  key={index}
+                  className="flex items-center px-6 py-2 text-gray-400 hover:bg-gray-600 hover:text-white cursor-pointer transition-all duration-200"
+                >
+                  <Link href={subItem.path} className="flex items-center w-full">
+                    <SubIconComponent size={16} className="flex-shrink-0" />
+                    <span className="ml-3 text-sm">{subItem.label}</span>
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 
   return (
     <div className="flex h-[100vh] bg-gray-100 overflow-hidden">
       {/* Sidebar */}
       <div className={`
-        bg-gray-800 text-white transition-all duration-300 ease-in-out flex flex-col
-        ${isMinimized ? 'w-16' : 'w-64'}
-      `}>
+          fixed top-0 left-0 h-screen bg-gray-800 text-white flex flex-col
+          transition-all duration-300 ease-in-out z-50
+          ${isMinimized ? "w-16" : "w-64"}
+        `}>
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
+        <div className="flex items-center justify-between p-4 border-b border-gray-700 flex-shrink-0">
           {!isMinimized && (
             <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
               Admin Panel

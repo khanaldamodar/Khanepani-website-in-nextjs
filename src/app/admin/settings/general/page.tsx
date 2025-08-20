@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Upload, User, MapPin, Mail, Phone, Facebook, Twitter, Instagram, Save, Check } from "lucide-react";
-
+import Cookie from "js-cookie";
 export default function GeneralSettingsPage() {
   const [form, setForm] = useState({
     name: "",
@@ -10,8 +10,7 @@ export default function GeneralSettingsPage() {
     email: "",
     phone: "",
     facebook: "",
-    twitter: "",
-    instagram: "",
+    twitter: ""
   });
 
   const [logo, setLogo] = useState<File | null>(null);
@@ -36,7 +35,7 @@ export default function GeneralSettingsPage() {
         };
         
         // Uncomment and modify this for actual API call
-        /*
+        
         const token = Cookie.get("token");
         const res = await fetch("http://localhost:8000/api/settings", {
           headers: {
@@ -48,9 +47,9 @@ export default function GeneralSettingsPage() {
         if (data.logo) {
           setLogoPreview(`http://localhost:8000/storage/${data.logo}`);
         }
-        */
         
-        setForm(mockData);
+        
+        setForm(data);
       } catch (err) {
         console.error("Failed to load settings", err);
       }
@@ -82,8 +81,7 @@ export default function GeneralSettingsPage() {
       setLoading(false);
     }, 1500);
 
-    // Uncomment for actual API call
-    /*
+  
     const formData = new FormData();
     formData.append("_method", "PUT");
     formData.append("name", form.name);
@@ -92,12 +90,12 @@ export default function GeneralSettingsPage() {
     formData.append("phone", form.phone);
     formData.append("facebook", form.facebook);
     formData.append("twitter", form.twitter);
-    formData.append("instagram", form.instagram);
     if (logo) formData.append("logo", logo);
 
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL; 
       const token = Cookie.get("token");
-      const res = await fetch("http://localhost:8000/api/settings", {
+      const res = await fetch(`${apiUrl}settings`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -116,18 +114,12 @@ export default function GeneralSettingsPage() {
     } finally {
       setLoading(false);
     }
-    */
+   
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-12 px-4">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">General Settings</h1>
-          <p className="text-gray-600">Manage your company information and social media links</p>
-        </div>
-
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-6">
             <h2 className="text-2xl font-semibold text-white flex items-center">
@@ -142,7 +134,7 @@ export default function GeneralSettingsPage() {
               <div className="space-y-6">
                 {/* Logo Upload */}
                 <div className="bg-gray-50 p-6 rounded-xl border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors">
-                  <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                  <label className=" text-sm font-semibold text-gray-700 mb-3 flex items-center">
                     <Upload className="mr-2" size={18} />
                     Company Logo
                   </label>
@@ -165,7 +157,7 @@ export default function GeneralSettingsPage() {
 
                 {/* Company Name */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                  <label className=" text-sm font-semibold text-gray-700 mb-2 flex items-center">
                     <User className="mr-2" size={18} />
                     Company Name *
                   </label>
@@ -182,7 +174,7 @@ export default function GeneralSettingsPage() {
 
                 {/* Address */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                  <label className=" text-sm font-semibold text-gray-700 mb-2 flex items-center">
                     <MapPin className="mr-2" size={18} />
                     Address
                   </label>
@@ -201,7 +193,7 @@ export default function GeneralSettingsPage() {
               <div className="space-y-6">
                 {/* Email */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                  <label className=" text-sm font-semibold text-gray-700 mb-2 flex items-center">
                     <Mail className="mr-2" size={18} />
                     Email Address *
                   </label>
@@ -218,7 +210,7 @@ export default function GeneralSettingsPage() {
 
                 {/* Phone */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                  <label className=" text-sm font-semibold text-gray-700 mb-2 flex items-center">
                     <Phone className="mr-2" size={18} />
                     Phone Number
                   </label>
@@ -245,7 +237,7 @@ export default function GeneralSettingsPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Facebook */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                  <label className=" text-sm font-semibold text-gray-700 mb-2 flex items-center">
                     <Facebook className="mr-2 text-blue-600" size={18} />
                     Facebook
                   </label>
@@ -261,7 +253,7 @@ export default function GeneralSettingsPage() {
 
                 {/* Twitter */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                  <label className=" text-sm font-semibold text-gray-700 mb-2 flex items-center">
                     <Twitter className="mr-2 text-sky-500" size={18} />
                     Twitter
                   </label>
@@ -272,22 +264,6 @@ export default function GeneralSettingsPage() {
                     onChange={handleChange}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors bg-white shadow-sm"
                     placeholder="https://twitter.com/yourhandle"
-                  />
-                </div>
-
-                {/* Instagram */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                    <Instagram className="mr-2 text-pink-600" size={18} />
-                    Instagram
-                  </label>
-                  <input
-                    type="url"
-                    name="instagram"
-                    value={form.instagram}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors bg-white shadow-sm"
-                    placeholder="https://instagram.com/yourprofile"
                   />
                 </div>
               </div>

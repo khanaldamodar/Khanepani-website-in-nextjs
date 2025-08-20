@@ -21,7 +21,8 @@ export default function AllDocumentsPage() {
   useEffect(() => {
     // Replace this with your real API call
     const fetchDocuments = async () => {
-      const res = await fetch('http://localhost:8000/api/documents'); // Laravel or mock API
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      const res = await fetch(`${apiUrl}documents`);
       const data = await res.json();
       console.log(data);
       setDocuments(data);
@@ -36,7 +37,8 @@ export default function AllDocumentsPage() {
     if (!confirm) return;
 
     try {
-      const res = await fetch(`/api/documents/${id}`, {
+       const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      const res = await fetch(`${apiUrl}documents/${id}`, {
         method: 'DELETE',
       });
 
@@ -79,7 +81,7 @@ export default function AllDocumentsPage() {
                     <td className="p-3">{doc.type}</td>
                     <td className="p-3">
                       <a
-                        href={`/storage/documents/${doc.file}`}
+                        href={`${process.env.NEXT_PUBLIC_IMAGE_URL}storage/${doc.file}`}
                         className="text-blue-600 underline"
                         target="_blank"
                       >

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
 
 interface Member {
   id: number;
@@ -14,14 +15,18 @@ interface Member {
 }
 
 export default function MembersList() {
+
+  const router = useRouter();
   const [members, setMembers] = useState<Member[]>([]);
   const [filter, setFilter] = useState<"all" | "board" | "staff">("all");
+  const imageUrl = process.env.NEXT_PUBLIC_IMAGE_URL; 
 
   useEffect(() => {
     const fetchMembers = async () => {
       try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL  // Replace with your API URL
         const token = Cookies.get("token"); // Replace with your token retrieval logic
-        const res = await fetch("http://127.0.0.1:8000/api/members", {
+        const res = await fetch(`${apiUrl}members`, {
           headers: {
             Authorization: `Bearer ${token}`, // Replace with your token
           },
@@ -36,13 +41,41 @@ export default function MembersList() {
     fetchMembers();
   }, []);
 
+   const handleDelete = async (id: number) => {
+    if (!confirm("Are you sure you want to delete this member?")) return;
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const token = Cookies.get("token");
+      const res = await fetch(`${apiUrl}members/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.ok) {
+        setMembers((prev) => prev.filter((m) => m.id !== id));
+      } else {
+        const err = await res.json();
+        alert(err.message || "Delete failed.");
+      }
+    } catch (error) {
+      alert("Delete request failed.");
+    }
+  };
+
+   const handleEdit = (id: number) => {
+    router.push(`/admin/members/add?id=${id}`);
+  };
+
   const filteredMembers =
     filter === "all"
       ? members
       : members.filter((member) => member.type === filter);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="max-w-6xl mx-auto px-4 py-8 font-poppins">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Members List</h2>
         <select
@@ -73,7 +106,7 @@ export default function MembersList() {
               <tr key={member.id} className="border-t hover:bg-gray-50">
                 <td className="px-4 py-3">
                   <img
-                    src={member.photo}
+                    src={`${imageUrl}storage/${member.photo}`}
                     alt={member.name}
                     className="h-10 w-10 rounded-full object-cover"
                   />
@@ -86,7 +119,7 @@ export default function MembersList() {
                   <button title="View">
                     <Eye className="h-5 w-5 text-blue-600 hover:text-blue-800" />
                   </button>
-                  <button title="Edit">
+                  <button title="Edit" onClick={() => handleEdit(member.id)}>
                     <Pencil className="h-5 w-5 text-yellow-600 hover:text-yellow-800" />
                   </button>
                   <button title="Delete" onClick={() => handleDelete(member.id)}>
@@ -108,9 +141,6 @@ export default function MembersList() {
     </div>
   );
 
-  function handleDelete(id: number) {
-    if (!confirm("Are you sure you want to delete this member?")) return;
-    // Add your delete logic here (API call and update state)
-    console.log("Deleting member with id:", id);
-  }
 }
+
+

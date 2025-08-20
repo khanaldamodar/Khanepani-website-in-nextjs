@@ -20,8 +20,9 @@ export default function EditDocumentPage() {
 
   useEffect(() => {
     const fetchDocument = async () => {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-    const res = await axios.get(`http://localhost:8000/api/documents/${id}`, {
+    const res = await axios.get(`${apiUrl}documents/${id}`, {
         headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
@@ -86,7 +87,7 @@ export default function EditDocumentPage() {
   };
 
   return (
-    <div className="max-w-xl mx-auto mt-10 p-6 bg-white rounded shadow">
+    <div className="max-w-xl mx-auto mt-10 p-6 bg-white rounded shadow font-poppins">
       <h2 className="text-xl font-semibold mb-6">Edit Document</h2>
 
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -129,7 +130,7 @@ export default function EditDocumentPage() {
           />
           {currentFile && (
             <a
-              href={`/storage/documents/${currentFile}`}
+              href={`${process.env.NEXT_PUBLIC_IMAGE_URL}storage/${currentFile}`}
               target="_blank"
               className="text-sm text-blue-600 underline block mt-1"
             >

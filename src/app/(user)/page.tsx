@@ -8,7 +8,8 @@ import React from 'react'
 
 const page = () => {
   return (
-    <div className='bg-[#4A596B]'>
+    // bg-[#4A596B]
+    <div className=''>
       <MarqueeBanner/>
 
       <GalleryWithMembers/> 

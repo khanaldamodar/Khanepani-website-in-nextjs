@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
 
 interface Post {
   id: number;
@@ -13,6 +14,7 @@ interface Post {
 }
 
 export default function BlogListPage() {
+  const router = useRouter();
   const [posts, setPosts] = useState<Post[]>([]);
   const [filterTitle, setFilterTitle] = useState("");
 
@@ -39,8 +41,9 @@ export default function BlogListPage() {
     if (!confirm("Are you sure you want to delete this post?")) return;
 
     try {
-        const token = Cookies.get("token") 
-      const res = await fetch(`http://localhost:8000/api/posts/${id}`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      const token = Cookies.get("token") 
+      const res = await fetch(`${apiUrl}posts/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -63,7 +66,7 @@ export default function BlogListPage() {
   );
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="max-w-6xl mx-auto px-4 py-8 font-poppins">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Blog Posts</h2>
         <input
@@ -107,7 +110,7 @@ export default function BlogListPage() {
                   <button title="View">
                     <Eye className="h-5 w-5 text-blue-600 hover:text-blue-800" />
                   </button>
-                  <button title="Edit">
+                  <button title="Edit" onClick={() => router.push(`/admin/blog/add?id=${post.id}`)}>
                     <Pencil className="h-5 w-5 text-yellow-600 hover:text-yellow-800" />
                   </button>
                   <button title="Delete" onClick={() => handleDelete(post.id)}>

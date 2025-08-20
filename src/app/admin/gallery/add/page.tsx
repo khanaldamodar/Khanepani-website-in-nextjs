@@ -1,14 +1,36 @@
 "use client";
 
-import { useState } from "react";
-import Cookies from "js-cookie"; // Ensure you have js-cookie installed
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import Cookies from "js-cookie";
 
 export default function AddGallery() {
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id");
+
   const [images, setImages] = useState<FileList | null>(null);
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
+  const [existingImages, setExistingImages] = useState<string[]>([]); // for showing current images
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  // Fetch data if editing
+  useEffect(() => {
+    if (id) {
+      const fetchGallery = async () => {
+        const token = Cookies.get("token");
+        const res = await fetch(`http://localhost:8000/api/gallery/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        setTitle(data.title);
+        setCategory(data.category);
+        setExistingImages(data.images || []);
+      };
+      fetchGallery();
+    }
+  }, [id]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -24,34 +46,43 @@ export default function AddGallery() {
     const formData = new FormData();
     formData.append("title", title);
     formData.append("category", category);
+
     if (images) {
       Array.from(images).forEach((image) => {
-        formData.append("images[]", image); // match Laravel's images.*
+        formData.append("images[]", image);
       });
     }
 
     try {
-      const token = Cookies.get("token"); // Assuming you have a way to get the token from cookies or context
-      const res = await fetch("http://localhost:8000/api/gallery", {
-        method: "POST",
+      const token = Cookies.get("token");
+      const url = id
+        ? `http://localhost:8000/api/gallery/${id}`
+        : "http://localhost:8000/api/gallery";
+      const method = id ? "POST" : "POST"; // If Laravel uses PUT for update, adjust accordingly
+      if (id) formData.append("_method", "PUT"); // Laravel's method spoofing
+
+      const res = await fetch(url, {
+        method,
         headers: {
-          Authorization: `Bearer ${token}`, // Replace with actual token
+          Authorization: `Bearer ${token}`,
         },
         body: formData,
       });
 
       if (res.ok) {
         setSuccess(true);
-        setTitle("");
-        setCategory("");
-        setImages(null);
-        (document.getElementById("images") as HTMLInputElement).value = "";
+        if (!id) {
+          setTitle("");
+          setCategory("");
+          setImages(null);
+          (document.getElementById("images") as HTMLInputElement).value = "";
+        }
       } else {
         const err = await res.json();
-        alert(err.message || "Failed to upload");
+        alert(err.message || "Failed to save gallery");
       }
     } catch (err) {
-      alert("Upload error");
+      alert("Error saving gallery");
     } finally {
       setLoading(false);
     }
@@ -59,11 +90,12 @@ export default function AddGallery() {
 
   return (
     <div className="max-w-2xl mx-auto mt-10 p-6 bg-white rounded-xl shadow font-poppins">
-      <h2 className="text-2xl font-semibold mb-6">Add Gallery Item</h2>
+      <h2 className="text-2xl font-semibold mb-6">
+        {id ? "Edit Gallery Item" : "Add Gallery Item"}
+      </h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="text"
-          name="title"
           placeholder="Gallery Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -72,7 +104,6 @@ export default function AddGallery() {
         />
 
         <select
-          name="category"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
           required
@@ -87,14 +118,24 @@ export default function AddGallery() {
           <option value="others">Others</option>
         </select>
 
+        {id && existingImages.length > 0 && (
+          <div className="flex gap-2 flex-wrap">
+            {existingImages.map((img, i) => (
+              <img
+                key={i}
+                src={`http://localhost:8000/storage/${img}`}
+                alt="existing"
+                className="h-16 w-16 object-cover rounded"
+              />
+            ))}
+          </div>
+        )}
+
         <input
           type="file"
-          name="images"
-          id="images"
           accept="image/*"
           multiple
           onChange={handleImageChange}
-          required
           className="w-full border px-4 py-2 rounded"
         />
 
@@ -103,12 +144,12 @@ export default function AddGallery() {
           disabled={loading}
           className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
         >
-          {loading ? "Uploading..." : "Upload"}
+          {loading ? "Saving..." : id ? "Update" : "Upload"}
         </button>
 
         {success && (
           <p className="text-green-600 font-medium">
-            Gallery uploaded successfully!
+            {id ? "Gallery updated successfully!" : "Gallery uploaded successfully!"}
           </p>
         )}
       </form>
